@@ -1,11 +1,25 @@
-FROM mcr.microsoft.com/azure-functions/python:4-python3.11
+FROM node:22-alpine as builder
 
-ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+WORKDIR /app
 
-COPY . /home/site/wwwroot
+COPY tsconfig.json package.json package-lock.json ./
+COPY src /app/src
 
-RUN cd /home/site/wwwroot && \
-    pip install poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --only main --no-interaction --no-ansi 
+RUN npm ci; npm run build
+
+FROM node:22-alpine
+
+ENV AZURE_BLOB_ACCOUNT_NAME=""
+ENV AZURE_BLOB_SAS=""
+
+EXPOSE 3000
+
+WORKDIR /app
+
+COPY --from=builder /app/package.json /app/package-lock.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
+CMD ["node", "dist/server.js"]
+
+
