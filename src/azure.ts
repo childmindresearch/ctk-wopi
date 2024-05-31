@@ -62,9 +62,21 @@ export class AzureStorage {
                 }
                 return response;
             })
-            .then(async (response) => await response.blob())
-            .then((blob) => {
-                return new Response(blob);
+            .then(async (response) => {
+                if (!response.body) {
+                    throw new Error("Response body is null");
+                }
+                return await response.arrayBuffer();
+            })
+            .then((buffer) => {
+                return new Response(buffer, {
+                    status: 200,
+                    headers: {
+                        "Content-Type":
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        "Content-Length": buffer.byteLength.toString(),
+                    },
+                });
             })
             .catch((error) => {
                 logger.error(`Failed to read blob: ${error}`);

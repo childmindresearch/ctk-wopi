@@ -37,7 +37,13 @@ app.get(
         logger.info(`Retrieving file ${name} from WOPI server.`);
 
         const response = await new AzureStorage().readBlob("templates", name);
-        res.send(response);
+        if (!response.body) {
+            logger.error("Response body is null");
+            res.status(500).send();
+            return;
+        }
+        res.type("docx");
+        res.send(Buffer.from(await response.arrayBuffer()));
     }
 );
 
