@@ -16,6 +16,7 @@ EXPOSE 3000
 
 WORKDIR /app
 
+COPY public /app/public
 COPY --from=builder /app/package.json /app/package-lock.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist

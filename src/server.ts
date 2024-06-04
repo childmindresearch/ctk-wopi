@@ -1,9 +1,16 @@
 import express from "express";
 import { logger } from "./logging";
 import { AzureStorage } from "./azure";
-
+import fs from "fs";
 const app = express();
 const PORT = 3000;
+
+const XML_DISCOVERY = fs.readFileSync("public/discovery.xml", "utf-8");
+
+app.get("/hosting/discovery", (req: express.Request, res: express.Response) => {
+    logger.info("Retrieving discovery.xml from WOPI server.");
+    res.send(XML_DISCOVERY);
+});
 
 app.get(
     "/wopi/files/:name",
